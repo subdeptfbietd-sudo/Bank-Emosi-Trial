@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Rescue: The Emotional Bank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --panel-bg: #1f2833;
+            --text-main: #c5c6c7;
+            --neon-cyan: #66fcf1;
+            --neon-teal: #45a29e;
+            --neon-pink: #f0058b;
+            --neon-yellow: #f2e94e;
+            --neon-orange: #ff5722;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --border-style: 3px solid #66fcf1;
+            --box-shadow: 4px 4px 0px #66fcf1;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1, h2, h3 {
+            font-family: 'VT323', monospace;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 600px;
+            min-height: 100vh;
+            padding: 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* UI Elements */
+        .btn {
+            background-color: var(--bg-color);
+            color: var(--neon-cyan);
+            border: var(--border-style);
+            box-shadow: var(--box-shadow);
+            padding: 15px 30px;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.1s;
+            text-transform: uppercase;
+        }
+
+        .btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px var(--neon-cyan);
+        }
+
+        .btn-pink {
+            color: var(--neon-pink);
+            border-color: var(--neon-pink);
+            box-shadow: 4px 4px 0px var(--neon-pink);
+        }
+
+        .input-group {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--neon-yellow);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 2px solid var(--neon-teal);
+            color: var(--neon-cyan);
+            font-family: 'Space Mono', monospace;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--text-main);
+            padding: 20px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px dashed var(--neon-teal);
+            padding-bottom: 10px;
+        }
+
+        .audio-btn {
+            background: transparent;
+            border: 1px solid var(--neon-yellow);
+            color: var(--neon-yellow);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .progress-title {
+            display: flex;
+            justify-content: space-between;
+            color: var(--neon-cyan);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 25px;
+            background: #000;
+            border: 2px solid var(--neon-cyan);
+            position: relative;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--neon-cyan),
+                var(--neon-cyan) 10px,
+                var(--neon-teal) 10px,
+                var(--neon-teal) 20px
+            );
+            transition: width 0.5s ease;
+        }
+
+        /* Drop Zones */
+        .zones-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .drop-zone {
+            flex: 1;
+            border: 2px dashed var(--text-main);
+            border-radius: 10px;
+            padding: 15px 5px;
+            text-align: center;
+            background: rgba(31, 40, 51, 0.8);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .drop-zone h3 { font-size: 18px; margin: 0 0 10px 0; }
+        .drop-zone p { font-size: 10px; margin: 0; line-height: 1.2; }
+
+        .zone-andi { border-color: var(--neon-orange); color: var(--neon-orange); }
+        .zone-rina { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .zone-trash { border-color: var(--danger); color: var(--danger); }
+
+        .drop-zone.highlight {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .emo-bar {
+            width: 80%;
+            height: 10px;
+            background: #000;
+            margin: 10px auto 0;
+            border: 1px solid currentColor;
+        }
+        .emo-fill {
+            height: 100%;
+            width: 0%;
+            background: currentColor;
+            transition: width 0.3s;
+        }
+
+        /* Draggable Card */
+        .card-container {
+            width: 100%;
+            height: 200px;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .action-card {
+            width: 280px;
+            background: var(--neon-yellow);
+            color: #000;
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            border: 3px solid #000;
+            box-shadow: 6px 6px 0px rgba(255, 255, 255, 0.2);
+            position: absolute;
+            cursor: grab;
+            touch-action: none; /* Prevent scroll on touch */
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 150px;
+        }
+        
+        .action-card:active { cursor: grabbing; }
+
+        .hint {
+            font-size: 12px;
+            color: var(--text-main);
+            text-align: center;
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+
+        /* Badges */
+        .badge-toast {
+            position: fixed;
+            top: 20px;
+            background: var(--neon-pink);
+            color: #fff;
+            padding: 10px 20px;
+            border: 2px solid #fff;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            z-index: 1000;
+            transform: translateY(-100px);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .badge-toast.show { transform: translateY(0); }
+
+        /* Debrief */
+        .result-item {
+            background: rgba(0,0,0,0.5);
+            border-left: 4px solid var(--neon-cyan);
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            width: 100%;
+        }
+        .result-item.wrong { border-left-color: var(--danger); }
+        .result-header { font-weight: bold; margin-bottom: 5px; color: var(--neon-yellow); }
+
+        footer {
+            margin-top: auto;
+            padding: 20px;
+            font-size: 12px;
+            color: #66fcf1;
+            text-align: center;
+        }
+
+        /* Floating Text Animation */
+        .floating-text {
+            position: absolute;
+            font-family: 'VT323', monospace;
+            font-size: 24px;
+            pointer-events: none;
+            animation: floatUp 1s forwards;
+            z-index: 500;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+
+        #login-error {
+            color: var(--danger);
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Badge Notification -->
+    <div id="badgeToast" class="badge-toast">🏆 LENCANA DIRAIH!</div>
+
+    <!-- SCREEN 1: GATEWAY -->
+    <div id="screen-gateway" class="screen active">
+        <h1 style="color: var(--neon-pink); font-size: 48px; text-align:center;">PROJECT RESCUE</h1>
+        <h2 style="color: var(--neon-cyan);">The Emotional Bank</h2>
+        
+        <div class="panel" style="margin-top: 30px;">
+            <p style="color: var(--neon-yellow); font-weight: bold; text-align: center;">"Proyek hancur bukan karena kodemu jelek, tapi karena rekan kerjamu ghosting! Berani perbaiki hubungan?"</p>
+        </div>
+
+        <div id="login-error">⚠️ HARAP MASUKKAN NAMA DAN NIK!</div>
+
+        <div class="input-group">
+            <label>NAMA LENGKAP</label>
+            <input type="text" id="playerName" placeholder="Ketik nama Anda...">
+        </div>
+        <div class="input-group">
+            <label>NIK</label>
+            <input type="text" id="playerNIK" placeholder="Ketik NIK Anda...">
+        </div>
+
+        <button class="btn" onclick="startGame()">ENTER SYSTEM_</button>
+
+        <footer>Education & Training Dept. © 2026</footer>
+    </div>
+
+    <!-- SCREEN 2: BRIEFING -->
+    <div id="screen-briefing" class="screen">
+        <h1 style="color: var(--neon-yellow);">MISSION BRIEFING</h1>
+        
+        <div class="panel">
+            <p>Halo, <strong><span id="display-name"></span></strong>!</p>
+            <p>Kamu adalah Project Leader. Proyek macet karena "Saldo Emosional" (Kepercayaan) dengan stakeholder hancur.</p>
+            <hr style="border-color: var(--neon-teal); margin: 15px 0;">
+            <p style="color: var(--neon-orange);"><strong>Pak Andi (Operasional):</strong> Butuh didengarkan, dihargai, & dibantu di lapangan.</p>
+            <p style="color: var(--neon-pink);"><strong>Bu Rina (Finance):</strong> Butuh kejujuran, kepastian, & data transparan.</p>
+            <hr style="border-color: var(--neon-teal); margin: 15px 0;">
+            <h3 style="color:var(--neon-cyan);">CARA MAIN (DRAG & DROP):</h3>
+            <ol style="font-size:14px; padding-left:15px;">
+                <li>Tarik Action Card ke <strong>Pak Andi</strong> / <strong>Bu Rina</strong> jika itu adalah DEPOSIT (sikap baik) yang sesuai dengan kebutuhan mereka.</li>
+                <li>Tarik ke <strong>TONG SAMPAH</strong> jika itu adalah WITHDRAWAL (Sikap perusak hubungan).</li>
+                <li>Proyek teknis hanya akan maju jika Saldo Emosional membaik!</li>
+            </ol>
+        </div>
+
+        <button class="btn btn-pink" onclick="startExecution()">START MISSION !</button>
+    </div>
+
+    <!-- SCREEN 3: CORE EXECUTION -->
+    <div id="screen-game" class="screen">
+        <div class="top-bar">
+            <div>
+                <span id="ui-name" style="color: var(--neon-yellow); font-weight:bold;">NAMA</span> | 
+                <span style="color: var(--neon-cyan);">SCORE: <span id="ui-score">0</span></span>
+            </div>
+            <button class="audio-btn" id="audioBtn" onclick="toggleAudio()">🔊 BGM ON</button>
+        </div>
+
+        <div class="progress-wrapper">
+            <div class="progress-title">
+                <span>PROJECT PROGRESS</span>
+                <span id="ui-progress-text">0%</span>
+            </div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="ui-progress-fill"></div>
+            </div>
+            <p style="font-size: 10px; margin-top:5px; color: #888;">*Progress naik jika hubungan kerja (deposit) berhasil dibangun.</p>
+        </div>
+
+        <!-- Drop Zones -->
+        <div class="zones-container">
+            <div class="drop-zone zone-andi" id="zone-andi">
+                <h3>👨‍🔧 PAK ANDI</h3>
+                <p>Operasional</p>
+                <div class="emo-bar"><div class="emo-fill" id="emo-andi"></div></div>
+            </div>
+            <div class="drop-zone zone-rina" id="zone-rina">
+                <h3>👩‍💼 BU RINA</h3>
+                <p>Finance</p>
+                <div class="emo-bar"><div class="emo-fill" id="emo-rina"></div></div>
+            </div>
+            <div class="drop-zone zone-trash" id="zone-trash">
+                <h3>🗑️ ABUSE</h3>
+                <p>Tolak/Hindari</p>
+            </div>
+        </div>
+
+        <div class="hint">Seret (Drag) kartu di bawah ke kotak yang tepat ⬆️</div>
+
+        <!-- Card Area -->
+        <div class="card-container">
+            <div class="action-card" id="active-card">
+                <span id="card-text">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: DEBRIEF -->
+    <div id="screen-debrief" class="screen">
+        <h1 style="color: var(--neon-cyan);">MISSION ACCOMPLISHED</h1>
+        <h2 id="final-score" style="color: var(--neon-yellow); font-size: 40px; margin: 0;">SCORE: 0</h2>
+        <p id="reinforcement-msg" style="text-align: center; font-weight: bold;"></p>
+
+        <div class="panel" style="max-height: 350px; overflow-y: auto;" id="feedback-list">
+            <!-- Feedback items injected here -->
+        </div>
+
+        <button class="btn" onclick="location.reload()">REPLAY SYSTEM</button>
+        <footer>Education & Training Dept. © 2026</footer>
+    </div>
+
+<script>
+    // --- AUDIO SYSTEM (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    let bgmOsc = null, bgmGain = null;
+    let isMuted = false;
+    let audioInitialized = false;
+    
+    // Notes for BGM (Pentatonic Retro Vibe)
+    const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 392.00, 329.63, 293.66];
+    let noteIdx = 0;
+    let bgmInterval;
+
+    function initAudio() {
+        if(audioInitialized) return;
+        audioCtx = new AudioContext();
+        audioInitialized = true;
+    }
+
+    function toggleAudio() {
+        isMuted = !isMuted;
+        document.getElementById('audioBtn').innerText = isMuted ? '🔇 BGM OFF' : '🔊 BGM ON';
+        if(isMuted && bgmGain) {
+            bgmGain.gain.value = 0;
+        } else if(!isMuted && bgmGain) {
+            bgmGain.gain.value = 0.05;
+        }
+    }
+
+    function playBGM() {
+        if(!audioCtx) initAudio();
+        if(bgmOsc) return;
+
+        bgmOsc = audioCtx.createOscillator();
+        bgmGain = audioCtx.createGain();
+        bgmOsc.type = 'square';
+        bgmGain.gain.value = isMuted ? 0 : 0.05;
+
+        bgmOsc.connect(bgmGain);
+        bgmGain.connect(audioCtx.destination);
+        bgmOsc.start();
+
+        bgmInterval = setInterval(() => {
+            if(audioCtx.state === 'running') {
+                bgmOsc.frequency.setValueAtTime(notes[noteIdx % notes.length], audioCtx.currentTime);
+                noteIdx++;
+            }
+        }, 250);
+    }
+
+    function playSFX(type) {
+        if(!audioCtx || isMuted) return;
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if(type === 'correct') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'wrong') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'badge') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // --- GAME DATA & STATE ---
+    const questions = [
+        { text: "Mendengarkan keluhan lapangan tim operasional tanpa menyela.", target: "andi", desc: "Mendengarkan adalah deposit empati terbesar bagi rekan operasional." },
+        { text: "Mengakui kesalahan secara terbuka karena telat mengirim invoice bulan lalu.", target: "rina", desc: "Tim Finance butuh kejujuran. Mengakui kesalahan membangun integritas tinggi." },
+        { text: "Menyalahkan tim lapangan secara terbuka di grup WA divisi.", target: "trash", desc: "Ini adalah WITHDRAWAL besar. Agresi publik menghancurkan toleransi." },
+        { text: "Menawarkan bantuan tenaga saat tim operasional sedang understaffed.", target: "andi", desc: "Deposit berupa tindakan nyata meringankan beban kerja mereka." },
+        { text: "Menepati janji untuk merapikan format laporan tepat pada waktunya.", target: "rina", desc: "Menepati janji dan ekspektasi adalah deposit krusial bagi keuangan." },
+        { text: "Menjelaskan detail pengeluaran dengan transparan, bukan menghindar.", target: "rina", desc: "Komunikasi terbuka memberikan rasa aman pada tim Finance." },
+        { text: "Memaksakan persetujuan budget dengan nada tinggi saat rapat.", target: "trash", desc: "Pemaksaan dan nada tinggi memutus komunikasi rasional (Withdrawal)." },
+        { text: "Mengucapkan terima kasih spesifik atas overtime tim operasional.", target: "andi", desc: "Apresiasi spesifik adalah deposit yang membuat tim merasa sangat dihargai." },
+        { text: "Membicarakan keburukan Bu Rina dengan anggota divisi lain.", target: "trash", desc: "Bergosip merusak kepercayaan (Loyalty to the absent) - Withdrawal kritis!" },
+        { text: "Meluangkan 10 menit ngobrol santai menanyakan kabar dengan Pak Andi.", target: "andi", desc: "Deposit ringan untuk membangun 'Balance' sebelum membahas urusan berat." }
+    ];
+
+    // Shuffle questions
+    questions.sort(() => Math.random() - 0.5);
+
+    let currentQ = 0;
+    let score = 0;
+    let correctAnswers = 0;
+    let andiBal = 0, rinaBal = 0;
+    let player = { name: '', nik: '' };
+    let feedbackLog = [];
+    let badgesEarned = 0;
+
+    // --- UI NAVIGATION ---
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function startGame() {
+        let name = document.getElementById('playerName').value.trim();
+        let nik = document.getElementById('playerNIK').value.trim();
+        
+        if(!name || !nik) {
+            document.getElementById('login-error').style.display = 'block';
+            return;
+        }
+        document.getElementById('login-error').style.display = 'none';
+
+        player.name = name;
+        player.nik = nik;
+        document.getElementById('display-name').innerText = name;
+        document.getElementById('ui-name').innerText = name.split(' ')[0].toUpperCase();
+        
+        initAudio(); // Required on first user interaction
+        showScreen('screen-briefing');
+    }
+
+    function startExecution() {
+        playBGM();
+        showScreen('screen-game');
+        loadCard();
+    }
+
+    // --- CORE MECHANICS (POINTER EVENTS DRAG & DROP) ---
+    const cardEl = document.getElementById('active-card');
+    const textEl = document.getElementById('card-text');
+    const zones = {
+        andi: document.getElementById('zone-andi'),
+        rina: document.getElementById('zone-rina'),
+        trash: document.getElementById('zone-trash')
+    };
+
+    let isDragging = false;
+    let startX, startY, currentX = 0, currentY = 0;
+
+    cardEl.addEventListener('pointerdown', (e) => {
+        isDragging = true;
+        startX = e.clientX - currentX;
+        startY = e.clientY - currentY;
+        cardEl.style.transition = 'none';
+        cardEl.setPointerCapture(e.pointerId);
+    });
+
+    cardEl.addEventListener('pointermove', (e) => {
+        if (!isDragging) return;
+        currentX = e.clientX - startX;
+        currentY = e.clientY - startY;
+        cardEl.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${currentX * 0.05}deg)`;
+        
+        // Highlight logic
+        let rect = cardEl.getBoundingClientRect();
+        Object.values(zones).forEach(z => z.classList.remove('highlight'));
+        let target = getCollision(rect);
+        if(target) zones[target].classList.add('highlight');
+    });
+
+    cardEl.addEventListener('pointerup', (e) => {
+        if(!isDragging) return;
+        isDragging = false;
+        cardEl.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        
+        Object.values(zones).forEach(z => z.classList.remove('highlight'));
+        let rect = cardEl.getBoundingClientRect();
+        let target = getCollision(rect);
+
+        if (target) {
+            processAnswer(target);
+        } else {
+            // Snap back
+            resetCardPos();
+        }
+    });
+
+    function getCollision(cardRect) {
+        let cardCenterX = cardRect.left + cardRect.width / 2;
+        let cardCenterY = cardRect.top + cardRect.height / 2;
+
+        for (let key in zones) {
+            let zRect = zones[key].getBoundingClientRect();
+            if (cardCenterX >= zRect.left && cardCenterX <= zRect.right &&
+                cardCenterY >= zRect.top && cardCenterY <= zRect.bottom) {
+                return key;
+            }
+        }
+        return null;
+    }
+
+    function resetCardPos() {
+        currentX = 0; currentY = 0;
+        cardEl.style.transform = `translate(0px, 0px) rotate(0deg)`;
+    }
+
+    function loadCard() {
+        if (currentQ >= questions.length) {
+            endGame();
+            return;
+        }
+        textEl.innerText = questions[currentQ].text;
+        resetCardPos();
+        // small animation in
+        cardEl.style.transform = `scale(0.8)`;
+        setTimeout(()=> cardEl.style.transform = `scale(1) translate(0,0)`, 50);
+    }
+
+    function processAnswer(droppedZone) {
+        let q = questions[currentQ];
+        let isCorrect = (droppedZone === q.target);
+        
+        if (isCorrect) {
+            playSFX('correct');
+            score += 10;
+            correctAnswers++;
+            showFloatingText("+10 DEPOSIT", zones[droppedZone]);
+            
+            // Update Emotional Balance
+            if(q.target === 'andi') { andiBal += 25; document.getElementById('emo-andi').style.width = andiBal+'%'; }
+            if(q.target === 'rina') { rinaBal += 25; document.getElementById('emo-rina').style.width = rinaBal+'%'; }
+        } else {
+            playSFX('wrong');
+            score = Math.max(0, score - 5);
+            showFloatingText("-5 WITHDRAWAL", zones[droppedZone], 'var(--danger)');
+        }
+
+        // Save for debrief
+        feedbackLog.push({
+            q: q.text,
+            isCorrect: isCorrect,
+            desc: q.desc
+        });
+
+        // Update UI Progress
+        document.getElementById('ui-score').innerText = score;
+        let progressPct = Math.round(((currentQ + 1) / questions.length) * 100);
+        document.getElementById('ui-progress-fill').style.width = progressPct + '%';
+        document.getElementById('ui-progress-text').innerText = progressPct + '%';
+
+        checkBadges(correctAnswers);
+
+        currentQ++;
+        setTimeout(loadCard, 400); // delay before next card
+    }
+
+    function showFloatingText(txt, parentEl, color = 'var(--success)') {
+        let fl = document.createElement('div');
+        fl.className = 'floating-text';
+        fl.innerText = txt;
+        fl.style.color = color;
+        
+        let rect = parentEl.getBoundingClientRect();
+        fl.style.left = (rect.left + 20) + 'px';
+        fl.style.top = rect.top + 'px';
+        
+        document.body.appendChild(fl);
+        setTimeout(() => fl.remove(), 1000);
+    }
+
+    function checkBadges(correctCount) {
+        let earned = false;
+        let msg = "";
+        if (correctCount === 5 && badgesEarned === 0) {
+            msg = "🏆 LENCANA: EMPATHY ROOKIE!";
+            badgesEarned++; earned = true;
+        } else if (correctCount === 8 && badgesEarned === 1) {
+            msg = "🏆 LENCANA: TRUST BUILDER!";
+            badgesEarned++; earned = true;
+        } else if (correctCount === 10 && badgesEarned === 2) {
+            msg = "🏆 LENCANA: MASTER OF SYNERGY!";
+            badgesEarned++; earned = true;
+        }
+
+        if (earned) {
+            playSFX('badge');
+            let toast = document.getElementById('badgeToast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    }
+
+    function endGame() {
+        if(bgmInterval) clearInterval(bgmInterval);
+        if(bgmGain) bgmGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1); // fade out
+        
+        showScreen('screen-debrief');
+        document.getElementById('final-score').innerText = `FINAL SCORE: ${score}`;
+        
+        let msgEl = document.getElementById('reinforcement-msg');
+        if (score >= 80) {
+            msgEl.innerText = "Luar biasa! Kamu memahami bahwa pekerjaan baru selesai jika hubungan baik terjaga. Proyek terselamatkan!";
+            msgEl.style.color = 'var(--success)';
+            playSFX('badge'); // win sound
+        } else if (score >= 50) {
+            msgEl.innerText = "Kerja bagus, tapi masih ada miskomunikasi. Terus bangun Saldo Emosional rekan kerjamu!";
+            msgEl.style.color = 'var(--neon-yellow)';
+        } else {
+            msgEl.innerText = "Proyek hancur karena trust issue. Ingat, skill teknis butuh pondasi hubungan (Deposit) yang kuat!";
+            msgEl.style.color = 'var(--danger)';
+        }
+
+        // Render Feedback List
+        let listEl = document.getElementById('feedback-list');
+        listEl.innerHTML = '';
+        feedbackLog.forEach((item, idx) => {
+            let div = document.createElement('div');
+            div.className = `result-item ${item.isCorrect ? '' : 'wrong'}`;
+            div.innerHTML = `
+                <div class="result-header">Q${idx+1}: ${item.isCorrect ? '✅ TEPAT' : '❌ KELIRU'}</div>
+                <div style="margin-bottom:5px;"><i>"${item.q}"</i></div>
+                <div style="color:var(--neon-cyan);"><strong>Alasan:</strong> ${item.desc}</div>
+            `;
+            listEl.appendChild(div);
+        });
+    }
+
+</script>
+</body>
+</html>
